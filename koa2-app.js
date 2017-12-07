@@ -145,9 +145,13 @@ app.use(async (ctx, next) => {
     let result = await easywechat.menu.add(buttons);
     console.log('add-menu', result);
 
-    let menus = await easywechat.menu.all();
+    console.log('all-menu', await easywechat.menu.all());
+    console.log('current-menu', await easywechat.menu.current());
 
-    ctx.body = JSON.stringify(menus);
+    // // 销毁菜单
+    // console.log('destory-menu', await easywechat.menu.destory());
+
+    ctx.body = '菜单创建成功';
   }
 
   else {
