@@ -146,28 +146,26 @@ app.get('/qrcode', async function (req, res) {
 
 app.get('/menu', async function (req, res) {
   let buttons = [
-    [
-      {
-        type: 'click',
-        name: '今日新闻',
-        key: 'TODAY_NEWS'
-      },
-      {
-        name: '新闻网站',
-        sub_button: [
-          {
-            type: 'view',
-            name: '新华网',
-            url: 'http://www.xinhuanet.com/'
-          },
-          {
-            type: 'view',
-            name: '中国新闻网',
-            url: 'http://www.chinanews.com/'
-          }
-        ]
-      }
-    ]
+    {
+      type: 'click',
+      name: '今日新闻',
+      key: 'TODAY_NEWS'
+    },
+    {
+      name: '新闻网站',
+      sub_button: [
+        {
+          type: 'view',
+          name: '新华网',
+          url: 'http://www.xinhuanet.com/'
+        },
+        {
+          type: 'view',
+          name: '中国新闻网',
+          url: 'http://www.chinanews.com/'
+        }
+      ]
+    }
   ];
   let result = await easywechat.menu.add(buttons);
   console.log('add-menu', result);
