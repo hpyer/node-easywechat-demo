@@ -12,6 +12,6 @@
     "koa-static": "^4.0.1"
   },
   "dependencies": {
-    "node-easywechat": "^1.0.0"
+    "node-easywechat": "https://github.com/hpyer/node-easywechat.git"
   }
 }

@@ -30,7 +30,13 @@ app.get('/', async function (req, res) {
     <script src="//res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
   </head>
   <body>
-    <div><a href="/wxlogin">微信授权登录（请在微信中打开）</a></div>
+    <ul>
+      <li><a href="/wxlogin">微信授权登录（请在微信中打开）</a></li>
+      <li><a href="/notice">发送模板消息</a></li>
+      <li><a href="/server?signature=9a39e983e5743d01e23507ad58ca3e90dbb9ebab&echostr=15947793626788132863&timestamp=1505801645&nonce=2830267549">服务器</a></li>
+      <li><a href="/qrcode">生成二维码</a></li>
+      <li><a href="/menu">自定义菜单</a></li>
+    </ul>
     <script>
     var wxConfig = ${jssdkConfig};
     wx.config(wxConfig);
@@ -63,10 +69,31 @@ app.use('/server', async function (req, res) {
   easywechat.setAppServerExpress(req, res);
 
   let handler = function (message) {
-    console.log('aa', message);
+    console.log('received', message);
 
-    // easywechat.server.send('Hi');
-    return 'Hi';
+    switch (message.MsgType) {
+      case 'text':
+        // 关键字自动回复
+        return new EasyWechat.Text({
+          content: '您说：' + message.Content
+        });
+        break;
+      case 'event':
+        // 消息事件
+        switch (message.Event) {
+          case 'subscribe':
+            // 用户关注
+            break;
+          case 'unsubscribe':
+            // 用户取关
+            break;
+        }
+        break;
+      default:
+    }
+
+    // 返回空或者success，表示程序不做任何响应
+    return;
   };
   easywechat.server.setMessageHandler(handler);
 
@@ -115,6 +142,39 @@ app.get('/qrcode', async function (req, res) {
   res.send(`
   <div><img width="200" height="200" src="/temporary.jpg" /><br>临时二维码（${seconds/60}分钟）</div>
   <div><img width="200" height="200" src="/forever.jpg" /><br>永久二维码</div>`);
+});
+
+app.get('/menu', async function (req, res) {
+  let buttons = [
+    [
+      {
+        type: 'click',
+        name: '今日新闻',
+        key: 'TODAY_NEWS'
+      },
+      {
+        name: '新闻网站',
+        sub_button: [
+          {
+            type: 'view',
+            name: '新华网',
+            url: 'http://www.xinhuanet.com/'
+          },
+          {
+            type: 'view',
+            name: '中国新闻网',
+            url: 'http://www.chinanews.com/'
+          }
+        ]
+      }
+    ]
+  ];
+  let result = await easywechat.menu.add(buttons);
+  console.log('add-menu', result);
+
+  let menus = await easywechat.menu.all();
+
+  ctx.body = JSON.stringify(menus);
 });
 
 app.listen(serverConfig.serverPort, function () {
