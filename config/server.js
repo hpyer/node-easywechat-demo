@@ -1,7 +1,7 @@
 
 module.exports = {
   // 服务器访问地址
-  serverUrl: 'http://www.test.com',
+  serverUrl: 'http://node-easywechat.hpyer.cn',
   // 服务器运行端口
   serverPort: 3000,
 
