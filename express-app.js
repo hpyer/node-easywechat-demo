@@ -74,7 +74,7 @@ app.use('/server', async function (req, res) {
     switch (message.MsgType) {
       case 'text':
         // 关键字自动回复
-        return new EasyWechat.Text({
+        return new EasyWechat.Message.Text({
           content: '您说：' + message.Content
         });
         break;
