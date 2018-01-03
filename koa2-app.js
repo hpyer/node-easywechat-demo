@@ -107,16 +107,21 @@ app.use(async (ctx, next) => {
     result = await easywechat.qrcode.temporary(1, seconds);
     console.log('temporary', result);
     qrcode = await easywechat.qrcode.url(result.ticket);
-    fs.writeFileSync('./static/temporary.jpg', qrcode, 'binary');
+    // 直接输出到浏览器
+    ctx.type = 'image/png';
+    ctx.body = new Buffer(qrcode, 'binary');
+    // 写入文件
+    // fs.writeFileSync('./temporary.jpg', qrcode, 'binary');
 
-    // forever
-    result = await easywechat.qrcode.forever(1);
-    console.log('forever', result);
-    qrcode = await easywechat.qrcode.url(result.ticket);
-    fs.writeFileSync('./static/forever.jpg', qrcode, 'binary');
-    ctx.body = `
-    <div><img width="200" height="200" src="/temporary.jpg" /><br>临时二维码（${seconds/60}分钟）</div>
-    <div><img width="200" height="200" src="/forever.jpg" /><br>永久二维码</div>`;
+    // // forever
+    // result = await easywechat.qrcode.forever(1);
+    // console.log('forever', result);
+    // qrcode = await easywechat.qrcode.url(result.ticket);
+    // // 直接输出到浏览器
+    // ctx.type = 'image/png';
+    // ctx.body = new Buffer(qrcode, 'binary');
+    // // 写入文件
+    // // fs.writeFileSync('./forever.jpg', qrcode, 'binary');
   }
 
   else if (ctx.path == '/menu') {

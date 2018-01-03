@@ -25,6 +25,6 @@ module.exports = {
     // 网页授权类型
     scope: 'snsapi_userinfo',
     // 网页授权回调地址，完整的URL
-    redirect: 'http://node-easywecaht.hpyer.cn/wxlogin/callback'
+    redirect: 'http://node-easywechat.hpyer.cn/wxlogin/callback'
   }
 };
