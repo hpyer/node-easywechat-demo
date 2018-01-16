@@ -7,6 +7,12 @@ module.exports = {
   // 微信公众号的 token
   token: '1q2w3e4r5t6y7u8i9o0p',
 
+  // access_token 的缓存名称
+  access_token_cache_key: 'NODE_EASYWECHAT_ACCESS_TOKEN',
+
+  // jssdk 的缓存名称
+  jssdk_cache_key: 'NODE_EASYWECHAT_JSSKD_TICKET',
+
   // 缓存驱动，可选值：memory（内存存储）、file（文件存储），默认：memory
   cache_driver: 'file',
   // 缓存以文件存储时，需要的配置项
