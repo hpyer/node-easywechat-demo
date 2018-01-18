@@ -6,6 +6,8 @@ module.exports = {
   appSecret: 'f2a408802fdd5fb8ecb860ec4c973c74',
   // 微信公众号的 token
   token: '1q2w3e4r5t6y7u8i9o0p',
+  // 微信公众号的 token
+  aesKey: 'i5DyhTuCG3HvY0CjrCsuKfr0HKdzGb2EwSSpDyqrZmo',
 
   // access_token 的缓存名称
   access_token_cache_key: 'NODE_EASYWECHAT_ACCESS_TOKEN',
