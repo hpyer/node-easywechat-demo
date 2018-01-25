@@ -114,9 +114,7 @@ app.use(async (ctx, next) => {
               // 菜单点击
               let res = 'success';
               if (message.EventKey == 'TODAY_NEWS') {
-                res = new EasyWechat.Message.Text({
-                  content: '您点击了【今日新闻】菜单'
-                });
+                res = '您点击了【今日新闻】菜单';
               }
               return res;
               break;
