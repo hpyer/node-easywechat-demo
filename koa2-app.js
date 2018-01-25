@@ -112,11 +112,9 @@ app.use(async (ctx, next) => {
               break;
             case 'CLICK':
               // 菜单点击
-              let res = '';
-              switch (message.EventKey) {
-                case 'TODAY_NEWS':
-                  res = '您点击了【今日新闻】菜单';
-                  break;
+              let res = 'success';
+              if (message.EventKey == 'TODAY_NEWS') {
+                res = '您点击了【今日新闻】菜单';
               }
               return res;
               break;
