@@ -110,6 +110,16 @@ app.use(async (ctx, next) => {
             case 'unsubscribe':
               // 用户取关
               break;
+            case 'click':
+              // 菜单点击
+              let message = '';
+              switch (message.EventKey) {
+                case 'TODAY_NEWS':
+                  message = '您点击了【今日新闻】菜单';
+                  break;
+              }
+              return message;
+              break;
           }
           break;
         default:
