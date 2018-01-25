@@ -110,7 +110,7 @@ app.use(async (ctx, next) => {
             case 'unsubscribe':
               // 用户取关
               break;
-            case 'click':
+            case 'CLICK':
               // 菜单点击
               let res = '';
               switch (message.EventKey) {
