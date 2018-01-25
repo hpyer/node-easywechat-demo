@@ -74,9 +74,32 @@ app.use('/server', async function (req, res) {
     switch (message.MsgType) {
       case 'text':
         // 关键字自动回复
-        return new EasyWechat.Message.Text({
-          content: '您说：' + message.Content
-        });
+        if (message.Content == '图文') {
+          let news1 = new EasyWechat.Message.News({
+            title: '测试新闻11',
+            description: '测试新闻描述11',
+            url: 'https://www.baidu.com',
+            image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
+          });
+          let news2 = new EasyWechat.Message.News({
+            title: '测试新闻22',
+            description: '测试新闻描述22',
+            url: 'https://www.baidu.com',
+            image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
+          });
+          let news3 = new EasyWechat.Message.News({
+            title: '测试新闻33',
+            description: '测试新闻描述33',
+            url: 'https://www.baidu.com',
+            image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
+          });
+          return [news1, news2, news3];
+        }
+        else {
+          return new EasyWechat.Message.Text({
+            content: '您说：' + message.Content
+          });
+        }
         break;
       case 'event':
         // 消息事件
