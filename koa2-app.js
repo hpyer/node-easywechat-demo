@@ -112,13 +112,13 @@ app.use(async (ctx, next) => {
               break;
             case 'click':
               // 菜单点击
-              let message = '';
-              switch (message.EventKey) {
+              let res = '';
+              switch (res.EventKey) {
                 case 'TODAY_NEWS':
-                  message = '您点击了【今日新闻】菜单';
+                  res = '您点击了【今日新闻】菜单';
                   break;
               }
-              return message;
+              return res;
               break;
           }
           break;
