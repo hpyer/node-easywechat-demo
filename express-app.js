@@ -18,7 +18,7 @@ let easywechat = new EasyWechat(easywechatConfig);
 
 app.get('/', async function (req, res) {
   easywechat.jssdk.setUrl(serverConfig.serverUrl + req.url);
-  let jssdkConfig = await easywechat.jssdk.config(['onMenuShareTimeline', 'onMenuShareAppMessage'], true);
+  let jssdkConfig = await easywechat.jssdk.config(['onMenuShareTimeline', 'onMenuShareAppMessage', 'chooseWXPay'], true);
   let html = `
   <!DOCTYPE html>
   <html lang="en">
@@ -40,6 +40,38 @@ app.get('/', async function (req, res) {
     <script>
     var wxConfig = ${jssdkConfig};
     wx.config(wxConfig);
+
+    // --------- 支付(前端处理) begin ---------
+
+    // 请求 /pay 接口
+    // var res = null;
+
+    // // WeixinJSBridge 方式
+    // WeixinJSBridge.invoke(
+    //   'getBrandWCPayRequest',
+    //   {
+    //     'appId': res.appId,     //公众号名称，由商户传入
+    //     'timeStamp': res.timeStamp,         //时间戳，自1970年以来的秒数
+    //     'nonceStr': res.nonceStr, //随机串
+    //     'package': res.package,
+    //     'signType': res.signType,         //微信签名方式
+    //     'paySign': res.paySign //微信签名
+    //   },
+    //   function (res) {}
+    // );
+
+    // // JSSDK 方式
+    // wx.chooseWXPay({
+    //   'timestamp': res.timestamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+    //   'nonceStr': res.nonceStr, // 支付签名随机串，不长于 32 位
+    //   'package': res.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
+    //   'signType': res.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+    //   'paySign': res.paySign, // 支付签名
+    //   'success': function (res) {},
+    //   'fail': function (res) {}
+    // });
+
+    // --------- 支付(前端处理) end ---------
     </script>
   </body>
   </html>
@@ -211,7 +243,54 @@ app.get('/menu', async function (req, res) {
   // // 销毁菜单
   // console.log('destory-menu', await easywechat.menu.destory());
 
-  ctx.body = '菜单创建成功';
+  res.send('菜单创建成功');
+});
+
+app.get('/pay', async function (req, res) {
+  let order = {
+    trade_type   : 'JSAPI', // JSAPI，NATIVE，APP...
+    body         : '测试支付',
+    detail       : '测试支付明细',
+    out_trade_no : 'NODE_EASYWECHAT_1234567890',  // 商家的订单号
+    total_fee    : 1, // 单位：分
+    spbill_create_ip    : '111.222.111.222',
+    notify_url   : 'http://example.com/pay/notify', // 需要完整的地址。支付结果通知网址，如果不设置则会使用配置里的默认地址
+    openid       : 'oj4-ZwX5jyygQmPU1pF-jWUznNNE' // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识
+  };
+
+  // 统一下单
+  let res = await easywechat.payment.prepare(order);
+  if (res.return_code != 'SUCCESS' || res.result_code != 'SUCCESS') {
+    console.log('pay', res);
+    res.send('支付失败');
+    return false;
+  }
+  let prepare_id = res.prepay_id;
+
+  // WeixinJSBridge
+  let config_jsbridge = easywechat.payment.configForPayment(prepare_id);
+  // JSSDK，如果使用这种方式，jssdk.config的api列表里需要增加一个chooseWXPay
+  let config_jssdk = easywechat.payment.configForJSSDKPayment(prepare_id);
+
+  res.send(JSON.stringify({
+    jsbridge: config_jsbridge,
+    jssdk: config_jssdk
+  }));
+});
+
+app.get('/pay/notify', async function (req, res) {
+  easywechat.setAppServerExpress(req, res);
+
+  let handler = function (notice, is_success) {
+    // 签名验证已经在回调之前处理了，这里直接写业务逻辑即可
+    // notice 是微信通知的所有参数，is_success表示result_code是否为SUCCESS
+    console.log('notify', notice, is_success);
+
+    // 返回 false 表示处理失败，微信会再次发送通知
+    return true;
+  };
+
+  await easywechat.payment.handleNotify(handler);
 });
 
 app.listen(serverConfig.serverPort, function () {
