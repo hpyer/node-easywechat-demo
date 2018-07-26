@@ -139,7 +139,7 @@ app.use(async (ctx, next) => {
     console.log('temporary', result);
     qrcode = await easywechat.qrcode.url(result.ticket);
     // 直接输出到浏览器
-    ctx.type = 'image/png';
+    ctx.type = 'image/jpg';
     ctx.body = new Buffer(qrcode, 'binary');
     // 写入文件
     // fs.writeFileSync('./temporary.jpg', qrcode, 'binary');
@@ -149,7 +149,7 @@ app.use(async (ctx, next) => {
     // console.log('forever', result);
     // qrcode = await easywechat.qrcode.url(result.ticket);
     // // 直接输出到浏览器
-    // ctx.type = 'image/png';
+    // ctx.type = 'image/jpg';
     // ctx.body = new Buffer(qrcode, 'binary');
     // // 写入文件
     // // fs.writeFileSync('./forever.jpg', qrcode, 'binary');
@@ -188,6 +188,84 @@ app.use(async (ctx, next) => {
     // console.log('destory-menu', await easywechat.menu.destory());
 
     ctx.body = '菜单创建成功';
+  }
+
+  else if (ctx.path == '/uploadImage') {
+
+    if (!ctx.request.query.serverId) {
+      ctx.body = '请提交serverId';
+      return false;
+    }
+
+    let result = await easywechat.material_temporary.getStream(ctx.request.query.serverId);
+    if (!result) {
+      ctx.body = '无效serverId';
+      return false;
+    }
+
+    await easywechat.material_temporary.download(ctx.request.query.serverId, __dirname + '/');
+
+    ctx.type = 'image/jpg';
+    ctx.body = new Buffer(result, 'binary');
+  }
+
+  else if (ctx.path == '/downloadImage') {
+    let file = __dirname + '/test.jpg';
+    let result = await easywechat.material_temporary.uploadImage(file);
+    if (!result) {
+      ctx.body = '上传微信服务器失败';
+      return false;
+    }
+
+    ctx.type = 'text/json';
+    ctx.body = result;
+  }
+
+  else if (ctx.path == '/sendArticles') {
+    let file = __dirname + '/thumb.jpg';
+    let result;
+    result = await easywechat.material.uploadThumb(file);
+    if (!result) {
+      ctx.body = '上传缩略图失败';
+      return false;
+    }
+    let thumb_media_id = result.media_id;
+
+    file = __dirname + '/test.jpg';
+    result = await easywechat.material.uploadArticleImage(file);
+    if (!result) {
+      ctx.body = '上传文章图片失败';
+      return false;
+    }
+    let media_url = result.url;
+
+    let articles = [];
+    articles.push({
+      title: '测试推文标题1',
+      thumb_media_id: thumb_media_id,
+      author: '测试推文作者1',
+      digest: '测试推文描述1',
+      show_cover_pic: 1,
+      content: '<p>测试推文内容1</p><p><img src="' + media_url + '" /></p>',
+      content_source_url: 'http://www.baidu.com',
+    });
+    articles.push({
+      title: '测试推文标题2',
+      thumb_media_id: thumb_media_id,
+      author: '测试推文作者2',
+      digest: '测试推文描述2',
+      show_cover_pic: 1,
+      content: '<p>测试推文内容2</p><p><img src="' + media_url + '" /></p>',
+      content_source_url: 'http://www.baidu.com',
+    });
+
+    result = await easywechat.material.uploadArticle(articles);
+    if (!result) {
+      ctx.body = '推文发送失败';
+      return false;
+    }
+
+    ctx.body = '推文发送成功：' + result.media_id;
   }
 
   else if (ctx.path == '/pay') {
@@ -235,22 +313,17 @@ app.use(async (ctx, next) => {
     await easywechat.payment.handleNotify(handler);
   }
 
-  else if (ctx.path == '/payment') {
-    let handler = function (notice, is_success) {
-      // 签名验证已经在回调之前处理了，这里直接写业务逻辑即可
-      // notice 是微信通知的所有参数，is_success表示result_code是否为SUCCESS
-      console.log('notify', notice, is_success);
-
-      // 返回 false 表示处理失败，微信会再次发送通知
-      return true;
-    };
-
-    await easywechat.payment.handleNotify(handler);
-  }
-
   else {
     easywechat.jssdk.setUrl(serverConfig.serverUrl + ctx.req.url);
-    let jssdkConfig = await easywechat.jssdk.config(['onMenuShareTimeline', 'onMenuShareAppMessage', 'chooseWXPay'], true);
+    let jssdkConfig = await easywechat.jssdk.config([
+      'onMenuShareTimeline',
+      'onMenuShareAppMessage',
+      'chooseImage',
+      'uploadImage',
+      'downloadImage',
+      'chooseWXPay'
+    ], true);
+
     let html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -260,50 +333,120 @@ app.use(async (ctx, next) => {
       <meta http-equiv="X-UA-Compatible" content="ie=edge">
       <title>微信公众号测试</title>
       <script src="//res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+      <script src="//apps.bdimg.com/libs/zepto/1.1.4/zepto.min.js"></script>
     </head>
     <body>
+      <h3>请在微信中打开体验各功能</h3>
       <ul>
-        <li><a href="/wxlogin">微信授权登录（请在微信中打开）</a></li>
+        <li><a href="/wxlogin">微信授权登录</a></li>
         <li><a href="/notice">发送模板消息</a></li>
         <li><a href="/server?signature=9a39e983e5743d01e23507ad58ca3e90dbb9ebab&echostr=15947793626788132863&timestamp=1505801645&nonce=2830267549">服务器</a></li>
         <li><a href="/qrcode">生成二维码</a></li>
         <li><a href="/menu">自定义菜单</a></li>
+        <li><a href="javascript:;" onclick="uploadimage()">上传图片</a></li>
+        <li><a href="javascript:;" onclick="downloadimage()">下载图片</a></li>
+        <li><a href="/sendArticles">推送文章</a></li>
       </ul>
+      <div>
+        <div id="previewImage" style="float: left;"></div>
+        <div id="uploadImage"></div>
+      </div>
+      <div>
+        <div id="downloadImage"></div>
+      </div>
       <script>
       var wxConfig = ${jssdkConfig};
       wx.config(wxConfig);
 
-      // --------- 支付(前端处理) begin ---------
+      function uploadimage () {
+        wx.chooseImage({
+          count: 1, // 默认9
+          sizeType: ['compressed'], // 可以指定是原图(original)还是压缩图(compressed)，默认二者都有
+          sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+          success: function (res) {
+            var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+            document.querySelector('#previewImage').innerHTML = '<img style="width: 150px;" src="' + localIds[0] + '" /><br>预览的照片';
 
-      // 请求 /pay 接口
-      // var res = null;
+            wx.uploadImage({
+              localId: localIds[0].toString(), // 需要上传的图片的本地ID，由chooseImage接口获得
+              isShowProgressTips: 1, // 默认为1，显示进度提示
+              success: function (res) {
+                //res.serverId 返回图片的服务器端ID
+                document.querySelector('#uploadImage').innerHTML = '<img style="width: 150px;" src="/uploadImage?serverId=' + res.serverId + '" /><br>上传后照片';
+              }
+            });
+          }
+        })
+      }
 
-      // // WeixinJSBridge 方式
-      // WeixinJSBridge.invoke(
-      //   'getBrandWCPayRequest',
-      //   {
-      //     'appId': res.appId,     //公众号名称，由商户传入
-      //     'timeStamp': res.timeStamp,         //时间戳，自1970年以来的秒数
-      //     'nonceStr': res.nonceStr, //随机串
-      //     'package': res.package,
-      //     'signType': res.signType,         //微信签名方式
-      //     'paySign': res.paySign //微信签名
-      //   },
-      //   function (res) {}
-      // );
+      function downloadimage () {
+        $.getJSON('/downloadImage', function (res) {
+          if (!res.media_id) {
+            alert('无效服务端ID');
+            return;
+          }
+          alert('服务端ID：' + res.media_id);
+          wx.downloadImage({
+            serverId: res.media_id, // 需要下载的图片的服务器端ID，由uploadImage接口获得
+            isShowProgressTips: 1, // 默认为1，显示进度提示
+            success: function (res) {
+              var localId = res.localId; // 返回图片下载后的本地ID
+              document.querySelector('#downloadImage').innerHTML = '<img style="width: 150px;" src="' + localId + '" /><br>下载的照片';
+            }
+          });
+        });
+      }
 
-      // // JSSDK 方式
-      // wx.chooseWXPay({
-      //   'timestamp': res.timestamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
-      //   'nonceStr': res.nonceStr, // 支付签名随机串，不长于 32 位
-      //   'package': res.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
-      //   'signType': res.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
-      //   'paySign': res.paySign, // 支付签名
-      //   'success': function (res) {},
-      //   'fail': function (res) {}
-      // });
+      wx.ready(function () {
+        wx.onMenuShareTimeline({
+          title: '测试分享到朋友圈',
+          link: wxConfig.url,
+          imgUrl: 'http://www.oasishealth.cn/upload/news/image/20170117/20170117162341_79205.jpg',
+          success: () => {},
+          cancel: () => {}
+        });
 
-      // --------- 支付(前端处理) end ---------
+        wx.onMenuShareAppMessage({
+          title: '测试分享给好友',
+          desc: '测试分享给好友详细描述',
+          link: wxConfig.url,
+          imgUrl: 'http://www.oasishealth.cn/upload/news/image/20170117/20170117162341_79205.jpg',
+          success: function () {},
+          cancel: function () {}
+        });
+
+        // --------- 支付(前端处理) begin ---------
+
+        // 请求 /pay 接口
+        // var res = null;
+
+        // // WeixinJSBridge 方式
+        // WeixinJSBridge.invoke(
+          //   'getBrandWCPayRequest',
+          //   {
+            //     'appId': res.appId,     //公众号名称，由商户传入
+            //     'timeStamp': res.timeStamp,         //时间戳，自1970年以来的秒数
+            //     'nonceStr': res.nonceStr, //随机串
+            //     'package': res.package,
+            //     'signType': res.signType,         //微信签名方式
+            //     'paySign': res.paySign //微信签名
+            //   },
+            //   function (res) {}
+            // );
+
+            // // JSSDK 方式
+            // wx.chooseWXPay({
+              //   'timestamp': res.timestamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+              //   'nonceStr': res.nonceStr, // 支付签名随机串，不长于 32 位
+              //   'package': res.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
+              //   'signType': res.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+              //   'paySign': res.paySign, // 支付签名
+              //   'success': function (res) {},
+              //   'fail': function (res) {}
+              // });
+
+              // --------- 支付(前端处理) end ---------
+      });
       </script>
     </body>
     </html>
