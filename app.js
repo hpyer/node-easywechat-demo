@@ -4,12 +4,7 @@ const Koa = require('koa');
 const KoaSession = require('koa-session');
 const KoaStatic = require('koa-static');
 
-const EasyWechat = require('node-easywechat');
-
 const serverConfig = require('./config/server');
-const easywechatConfig = require('./config/easywechat');
-
-const fs = require('fs');
 
 const app = new Koa();
 
@@ -21,9 +16,10 @@ app.use(KoaStatic('./static/'));
 app.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
 
-  let easywechat = new EasyWechat(easywechatConfig);
+  const EasyWechat = require('node-easywechat2');
+  const EasyWechatConfig = require('./config/OfficialAccount');
 
-  easywechat.setAppServerKoa2(ctx);
+  let easywechat = EasyWechat.Factory.getInstance('OfficialAccount', EasyWechatConfig);
 
   if (ctx.path == '/wxlogin') {
     if (!ctx.session.wxuser) {
@@ -44,21 +40,21 @@ app.use(async (ctx, next) => {
   }
 
   else if (ctx.path == '/notice') {
-    let openid = 'oj4-ZwX5jyygQmPU1pF-jWUznNNE';
-    let templateid = 'VSTKsTPv7-eM7T5Rjf4AnNn-0E1ULEDDmjvDY7mxi04';
+    let openid = 'ob_c2xAxZ2MiZctN7YomJoIu9nGk';
+    let templateid = 'QHbfPjXo9eeYxHcsab4lFenoj9abyQsndJQPr6e7WBI';
     let data = {
-      first: {
-        value: '恭喜你购买成功！'
+      welcome: {
+        value: '欢迎～'
       },
-      name: ['巧克力', '#0000ff'],
-      price: {
-        value: '39.8元',
+      user: ['张三', '#0000ff'],
+      time: {
+        value: '2020-01-22 12:25:54',
         color: '#ff0000'
       },
-      remark: '欢迎再次购买！'
+      remark: '感谢～'
     };
     let result
-    result = await easywechat.notice.send({
+    result = await easywechat.template_message.send({
       touser: openid,
       template_id: templateid,
       data
@@ -68,39 +64,36 @@ app.use(async (ctx, next) => {
   }
 
   else if (ctx.path == '/server') {
-    let handler = function (message) {
-      console.log('received', message);
+    let handler = async function (message) {
 
       switch (message.MsgType) {
         case 'text':
           // 关键字自动回复
           if (message.Content == '图文') {
-            let news1 = new EasyWechat.Message.News({
+            let news1 = new EasyWechat.Message.NewsItem({
               title: '测试新闻11',
               description: '测试新闻描述11',
               url: 'https://www.baidu.com',
               image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
             });
-            let news2 = new EasyWechat.Message.News({
+            let news2 = new EasyWechat.Message.NewsItem({
               title: '测试新闻22',
               description: '测试新闻描述22',
               url: 'https://www.baidu.com',
               image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
             });
-            let news3 = new EasyWechat.Message.News({
+            let news3 = new EasyWechat.Message.NewsItem({
               title: '测试新闻33',
               description: '测试新闻描述33',
               url: 'https://www.baidu.com',
               image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
             });
-            return [news1, news2, news3];
+            return news1;
+            // return [news1, news2, news3];
           }
           else {
-            return new EasyWechat.Message.Text({
-              content: '您说：' + message.Content
-            });
+            return new EasyWechat.Message.Text('您说：' + message.Content);
           }
-          break;
         case 'event':
           // 消息事件
           switch (message.Event) {
@@ -117,7 +110,6 @@ app.use(async (ctx, next) => {
                 res = '您点击了【今日新闻】菜单';
               }
               return res;
-              break;
           }
           break;
         default:
@@ -126,9 +118,16 @@ app.use(async (ctx, next) => {
       // 返回空或者success，表示程序不做任何响应
       return;
     };
-    easywechat.server.setMessageHandler(handler);
 
-    await easywechat.server.serve();
+
+    let request = new EasyWechat.Http.Request(ctx.req);
+    easywechat.rebind('request', request);
+
+    easywechat.server.push(handler);
+
+    let response = await easywechat.server.serve();
+
+    ctx.body = response.getContent().toString();
   }
 
   else if (ctx.path == '/qrcode') {
@@ -138,21 +137,14 @@ app.use(async (ctx, next) => {
     result = await easywechat.qrcode.temporary(1, seconds);
     console.log('temporary', result);
     qrcode = await easywechat.qrcode.url(result.ticket);
-    // 直接输出到浏览器
-    ctx.type = 'image/jpg';
-    ctx.body = new Buffer(qrcode, 'binary');
-    // 写入文件
-    // fs.writeFileSync('./temporary.jpg', qrcode, 'binary');
 
     // // forever
     // result = await easywechat.qrcode.forever(1);
     // console.log('forever', result);
     // qrcode = await easywechat.qrcode.url(result.ticket);
-    // // 直接输出到浏览器
-    // ctx.type = 'image/jpg';
-    // ctx.body = new Buffer(qrcode, 'binary');
-    // // 写入文件
-    // // fs.writeFileSync('./forever.jpg', qrcode, 'binary');
+    console.log('qrcode', qrcode);
+
+    ctx.body = `<a href="${qrcode}" target="_blank">查看二维码</a>`;
   }
 
   else if (ctx.path == '/menu') {
@@ -178,10 +170,10 @@ app.use(async (ctx, next) => {
         ]
       }
     ];
-    let result = await easywechat.menu.add(buttons);
-    console.log('add-menu', result);
+    let result = await easywechat.menu.create(buttons);
+    console.log('create-menu', result);
 
-    console.log('all-menu', await easywechat.menu.all());
+    console.log('list-menu', await easywechat.menu.list());
     console.log('current-menu', await easywechat.menu.current());
 
     // // 销毁菜单
@@ -197,21 +189,22 @@ app.use(async (ctx, next) => {
       return false;
     }
 
-    let result = await easywechat.material_temporary.getStream(ctx.request.query.serverId);
-    if (!result) {
+    let stream = await easywechat.media.get(ctx.request.query.serverId);
+    console.log(stream);
+    if (!stream) {
       ctx.body = '无效serverId';
       return false;
     }
 
-    await easywechat.material_temporary.download(ctx.request.query.serverId, __dirname + '/');
+    await stream.saveAs(__dirname, 'tmp.jpg');
 
     ctx.type = 'image/jpg';
-    ctx.body = new Buffer(result, 'binary');
+    ctx.body = stream.getContent();
   }
 
   else if (ctx.path == '/downloadImage') {
     let file = __dirname + '/test.jpg';
-    let result = await easywechat.material_temporary.uploadImage(file);
+    let result = await easywechat.media.uploadImage(file);
     if (!result) {
       ctx.body = '上传微信服务器失败';
       return false;
@@ -265,7 +258,7 @@ app.use(async (ctx, next) => {
       return false;
     }
 
-    ctx.body = '推文发送成功：' + result.media_id;
+    ctx.body = '推文发送成功，midia_id: ' + result.media_id;
   }
 
   else if (ctx.path == '/pay') {
@@ -315,7 +308,8 @@ app.use(async (ctx, next) => {
 
   else {
     easywechat.jssdk.setUrl(serverConfig.serverUrl + ctx.req.url);
-    let jssdkConfig = await easywechat.jssdk.config([
+
+    let jssdkConfig = await easywechat.jssdk.buildConfig([
       'onMenuShareTimeline',
       'onMenuShareAppMessage',
       'chooseImage',

@@ -4,14 +4,11 @@
     "express": "node express-app.js"
   },
   "devDependencies": {
-    "cookie-parser": "^1.4.3",
-    "express": "^4.15.4",
-    "express-session": "^1.15.5",
     "koa": "^2.3.0",
     "koa-session": "^5.5.0",
     "koa-static": "^4.0.1"
   },
   "dependencies": {
-    "node-easywechat": "https://github.com/hpyer/node-easywechat.git"
+    "node-easywechat2": "../node-easywechat"
   }
 }
