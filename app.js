@@ -3,6 +3,7 @@
 const Koa = require('koa');
 const KoaSession = require('koa-session');
 const KoaStatic = require('koa-static');
+const Fs = require('fs');
 
 const serverConfig = require('./config/server');
 
@@ -190,15 +191,14 @@ app.use(async (ctx, next) => {
     }
 
     let stream = await easywechat.media.get(ctx.request.query.serverId);
-    console.log(stream);
-    if (!stream) {
+    if (!stream || !(stream instanceof EasyWechat.Http.StreamResponse)) {
       ctx.body = '无效serverId';
       return false;
     }
 
-    await stream.saveAs(__dirname, 'tmp.jpg');
+    await stream.saveAs(__dirname, 'uploadImage.jpg');
 
-    ctx.type = 'image/jpg';
+    ctx.type = 'image/jepg';
     ctx.body = stream.getContent();
   }
 
