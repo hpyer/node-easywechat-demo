@@ -4,9 +4,7 @@
     "express": "node express-app.js"
   },
   "devDependencies": {
-    "koa": "^2.3.0",
-    "koa-session": "^5.5.0",
-    "koa-static": "^4.0.1"
+    "koa": "^2.3.0"
   },
   "dependencies": {
     "node-easywechat2": "../node-easywechat"

@@ -1,18 +1,12 @@
 'use strict';
 
 const Koa = require('koa');
-const KoaSession = require('koa-session');
-const KoaStatic = require('koa-static');
-const Fs = require('fs');
 
 const serverConfig = require('./config/server');
 
 const app = new Koa();
 
 app.keys = serverConfig.keysKoa;
-
-app.use(KoaSession(serverConfig.sessionKoa, app));
-app.use(KoaStatic('./static/'));
 
 app.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
@@ -23,21 +17,14 @@ app.use(async (ctx, next) => {
   let easywechat = EasyWechat.Factory.getInstance('OfficialAccount', EasyWechatConfig);
 
   if (ctx.path == '/wxlogin') {
-    if (!ctx.session.wxuser) {
-      let url = easywechat.oauth.redirect();
-      ctx.redirect(url);
-    }
-    else {
-      let user = ctx.session.wxuser;
-      ctx.body = 'Hello ' + user.name;
-    }
+    let url = easywechat.oauth.redirect();
+    ctx.redirect(url);
   }
 
   else if (ctx.path == '/wxlogin/callback') {
     let code = ctx.query.code;
     let user = await easywechat.oauth.user(code);
-    ctx.session.wxuser = user;
-    ctx.redirect('/wxlogin');
+    ctx.body = `<img src="${user.avatar}" style="display: block; border: 0; border-radius: 50%; width: 100px; height: 100px;"><br>Hello ${user.name}`;
   }
 
   else if (ctx.path == '/notice') {
