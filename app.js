@@ -14,7 +14,7 @@ app.use(async (ctx, next) => {
   const EasyWechat = require('node-easywechat2');
   const EasyWechatConfig = require('./config/OfficialAccount');
 
-  let officialAccount = new EasyWechat.Factory.officialAccount(EasyWechatConfig);
+  let officialAccount = new EasyWechat.Factory.OfficialAccount(EasyWechatConfig);
 
   if (ctx.path == '/wxlogin') {
     let url = officialAccount.oauth.redirect();
