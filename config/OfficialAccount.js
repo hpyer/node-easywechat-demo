@@ -6,7 +6,7 @@ module.exports = {
   secret: '2ad89ed91852e0302c9d7d48f35febf6',
   // 微信公众号的 token
   token: '1qaz2wsx3edc4rfv',
-  // 微信公众号的 token
+  // EncodingAESKey
   aes_key: '',
 
   // 网页授权认证

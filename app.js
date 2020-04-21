@@ -14,16 +14,16 @@ app.use(async (ctx, next) => {
   const EasyWechat = require('node-easywechat2');
   const EasyWechatConfig = require('./config/OfficialAccount');
 
-  let easywechat = EasyWechat.Factory.getInstance('OfficialAccount', EasyWechatConfig);
+  let officialAccount = new EasyWechat.Factory.officialAccount(EasyWechatConfig);
 
   if (ctx.path == '/wxlogin') {
-    let url = easywechat.oauth.redirect();
+    let url = officialAccount.oauth.redirect();
     ctx.redirect(url);
   }
 
   else if (ctx.path == '/wxlogin/callback') {
     let code = ctx.query.code;
-    let user = await easywechat.oauth.user(code);
+    let user = await officialAccount.oauth.user(code);
     ctx.body = `<img src="${user.avatar}" style="display: block; border: 0; border-radius: 50%; width: 100px; height: 100px;"><br>Hello ${user.name}`;
   }
 
@@ -42,7 +42,7 @@ app.use(async (ctx, next) => {
       remark: '感谢～'
     };
     let result
-    result = await easywechat.template_message.send({
+    result = await officialAccount.template_message.send({
       touser: openid,
       template_id: templateid,
       data
@@ -109,11 +109,11 @@ app.use(async (ctx, next) => {
 
 
     let request = new EasyWechat.Http.Request(ctx.req);
-    easywechat.rebind('request', request);
+    officialAccount.rebind('request', request);
 
-    easywechat.server.push(handler);
+    officialAccount.server.push(handler);
 
-    let response = await easywechat.server.serve();
+    let response = await officialAccount.server.serve();
 
     ctx.body = response.getContent().toString();
   }
@@ -122,14 +122,14 @@ app.use(async (ctx, next) => {
     // temporary
     let seconds = 300;
     let result, qrcode;
-    result = await easywechat.qrcode.temporary(1, seconds);
+    result = await officialAccount.qrcode.temporary(1, seconds);
     console.log('temporary', result);
-    qrcode = await easywechat.qrcode.url(result.ticket);
+    qrcode = await officialAccount.qrcode.url(result.ticket);
 
     // // forever
-    // result = await easywechat.qrcode.forever(1);
+    // result = await officialAccount.qrcode.forever(1);
     // console.log('forever', result);
-    // qrcode = await easywechat.qrcode.url(result.ticket);
+    // qrcode = await officialAccount.qrcode.url(result.ticket);
     console.log('qrcode', qrcode);
 
     ctx.body = `<a href="${qrcode}" target="_blank">查看二维码</a>`;
@@ -158,14 +158,14 @@ app.use(async (ctx, next) => {
         ]
       }
     ];
-    let result = await easywechat.menu.create(buttons);
+    let result = await officialAccount.menu.create(buttons);
     console.log('create-menu', result);
 
-    console.log('list-menu', await easywechat.menu.list());
-    console.log('current-menu', await easywechat.menu.current());
+    console.log('list-menu', await officialAccount.menu.list());
+    console.log('current-menu', await officialAccount.menu.current());
 
     // // 销毁菜单
-    // console.log('destory-menu', await easywechat.menu.destory());
+    // console.log('destory-menu', await officialAccount.menu.destory());
 
     ctx.body = '菜单创建成功';
   }
@@ -177,7 +177,7 @@ app.use(async (ctx, next) => {
       return false;
     }
 
-    let stream = await easywechat.media.get(ctx.request.query.serverId);
+    let stream = await officialAccount.media.get(ctx.request.query.serverId);
     if (!stream || !(stream instanceof EasyWechat.Http.StreamResponse)) {
       ctx.body = '无效serverId';
       return false;
@@ -191,7 +191,7 @@ app.use(async (ctx, next) => {
 
   else if (ctx.path == '/downloadImage') {
     let file = __dirname + '/test.jpg';
-    let result = await easywechat.media.uploadImage(file);
+    let result = await officialAccount.media.uploadImage(file);
     if (!result) {
       ctx.body = '上传微信服务器失败';
       return false;
@@ -204,7 +204,7 @@ app.use(async (ctx, next) => {
   else if (ctx.path == '/sendArticles') {
     let file = __dirname + '/thumb.jpg';
     let result;
-    result = await easywechat.material.uploadThumb(file);
+    result = await officialAccount.material.uploadThumb(file);
     if (!result) {
       ctx.body = '上传缩略图失败';
       return false;
@@ -212,7 +212,7 @@ app.use(async (ctx, next) => {
     let thumb_media_id = result.media_id;
 
     file = __dirname + '/test.jpg';
-    result = await easywechat.material.uploadArticleImage(file);
+    result = await officialAccount.material.uploadArticleImage(file);
     if (!result) {
       ctx.body = '上传文章图片失败';
       return false;
@@ -239,7 +239,7 @@ app.use(async (ctx, next) => {
       content_source_url: 'http://www.baidu.com',
     });
 
-    result = await easywechat.material.uploadArticle(articles);
+    result = await officialAccount.material.uploadArticle(articles);
     if (!result) {
       ctx.body = '推文发送失败';
       return false;
@@ -261,7 +261,7 @@ app.use(async (ctx, next) => {
     };
 
     // 统一下单
-    let res = await easywechat.payment.prepare(order);
+    let res = await officialAccount.payment.prepare(order);
     if (res.return_code != 'SUCCESS' || res.result_code != 'SUCCESS') {
       console.log('pay', res);
       ctx.body = '支付失败';
@@ -270,9 +270,9 @@ app.use(async (ctx, next) => {
     let prepare_id = res.prepay_id;
 
     // WeixinJSBridge
-    let config_jsbridge = easywechat.payment.configForPayment(prepare_id);
+    let config_jsbridge = officialAccount.payment.configForPayment(prepare_id);
     // JSSDK，如果使用这种方式，jssdk.config的api列表里需要增加一个chooseWXPay
-    let config_jssdk = easywechat.payment.configForJSSDKPayment(prepare_id);
+    let config_jssdk = officialAccount.payment.configForJSSDKPayment(prepare_id);
 
     ctx.body = JSON.stringify({
       jsbridge: config_jsbridge,
@@ -290,13 +290,13 @@ app.use(async (ctx, next) => {
       return true;
     };
 
-    await easywechat.payment.handleNotify(handler);
+    await officialAccount.payment.handleNotify(handler);
   }
 
   else {
-    easywechat.jssdk.setUrl(serverConfig.serverUrl + ctx.req.url);
+    officialAccount.jssdk.setUrl(serverConfig.serverUrl + ctx.req.url);
 
-    let jssdkConfig = await easywechat.jssdk.buildConfig([
+    let jssdkConfig = await officialAccount.jssdk.buildConfig([
       'onMenuShareTimeline',
       'onMenuShareAppMessage',
       'chooseImage',
