@@ -1,7 +1,6 @@
 {
   "scripts": {
-    "koa2": "node koa2-app.js",
-    "express": "node express-app.js"
+    "koa2": "node koa2-app.js"
   },
   "devDependencies": {
     "koa": "^2.3.0"
