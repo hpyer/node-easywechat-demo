@@ -12,19 +12,22 @@ app.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
 
   const EasyWechat = require('node-easywechat2');
-  const EasyWechatConfig = require('./config/OfficialAccount');
+  const OfficialAccountConfig = require('./config/OfficialAccount');
 
-  let officialAccount = new EasyWechat.Factory.OfficialAccount(EasyWechatConfig);
+  let officialAccount = new EasyWechat.Factory.OfficialAccount(OfficialAccountConfig);
 
   if (ctx.path == '/wxlogin') {
     let url = officialAccount.oauth.redirect();
+    console.log('/wxlogin', url);
     ctx.redirect(url);
   }
 
   else if (ctx.path == '/wxlogin/callback') {
     let code = ctx.query.code;
     let user = await officialAccount.oauth.user(code);
-    ctx.body = `<img src="${user.avatar}" style="display: block; border: 0; border-radius: 50%; width: 100px; height: 100px;"><br>Hello ${user.name}`;
+    console.log('/wxlogin/callback', user);
+    ctx.body = `<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <img src="${user.avatar}" style="display: block; border: 0; border-radius: 50%; width: 100px; height: 100px;"><br>Hello ${user.name}`;
   }
 
   else if (ctx.path == '/notice') {
@@ -47,8 +50,8 @@ app.use(async (ctx, next) => {
       template_id: templateid,
       data
     });
-    console.log(result);
-    ctx.body = '发送成功';
+    console.log('/notice', result);
+    ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">发送成功';
   }
 
   else if (ctx.path == '/server') {
@@ -58,19 +61,19 @@ app.use(async (ctx, next) => {
         case 'text':
           // 关键字自动回复
           if (message.Content == '图文') {
-            let news1 = new EasyWechat.Message.NewsItem({
+            let news1 = new EasyWechat.Messages.NewsItem({
               title: '测试新闻11',
               description: '测试新闻描述11',
               url: 'https://www.baidu.com',
               image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
             });
-            let news2 = new EasyWechat.Message.NewsItem({
+            let news2 = new EasyWechat.Messages.NewsItem({
               title: '测试新闻22',
               description: '测试新闻描述22',
               url: 'https://www.baidu.com',
               image: 'http://img5.imgtn.bdimg.com/it/u=161888459,1712714238&fm=27&gp=0.jpg',
             });
-            let news3 = new EasyWechat.Message.NewsItem({
+            let news3 = new EasyWechat.Messages.NewsItem({
               title: '测试新闻33',
               description: '测试新闻描述33',
               url: 'https://www.baidu.com',
@@ -80,7 +83,7 @@ app.use(async (ctx, next) => {
             // return [news1, news2, news3];
           }
           else {
-            return new EasyWechat.Message.Text('您说：' + message.Content);
+            return new EasyWechat.Messages.Text('您说：' + message.Content);
           }
         case 'event':
           // 消息事件
@@ -132,7 +135,7 @@ app.use(async (ctx, next) => {
     // qrcode = await officialAccount.qrcode.url(result.ticket);
     console.log('qrcode', qrcode);
 
-    ctx.body = `<a href="${qrcode}" target="_blank">查看二维码</a>`;
+    ctx.body = `<meta name="viewport" content="width=device-width, initial-scale=1.0"><a href="${qrcode}" target="_blank">查看二维码</a>`;
   }
 
   else if (ctx.path == '/menu') {
@@ -161,39 +164,43 @@ app.use(async (ctx, next) => {
     let result = await officialAccount.menu.create(buttons);
     console.log('create-menu', result);
 
-    console.log('list-menu', await officialAccount.menu.list());
-    console.log('current-menu', await officialAccount.menu.current());
+    // console.log('list-menu', await officialAccount.menu.list());
+    // console.log('current-menu', await officialAccount.menu.current());
 
     // // 销毁菜单
     // console.log('destory-menu', await officialAccount.menu.destory());
 
-    ctx.body = '菜单创建成功';
+    ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">菜单创建成功';
   }
 
   else if (ctx.path == '/uploadImage') {
 
     if (!ctx.request.query.serverId) {
-      ctx.body = '请提交serverId';
+      ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">请提交serverId';
       return false;
     }
 
+    // 根据media_id获取图片
     let stream = await officialAccount.media.get(ctx.request.query.serverId);
+    console.log('/uploadImage', stream);
     if (!stream || !(stream instanceof EasyWechat.Http.StreamResponse)) {
       ctx.body = '无效serverId';
       return false;
     }
 
+    // 保持图片到文件
     await stream.saveAs(__dirname, 'uploadImage.jpg');
 
-    ctx.type = 'image/jepg';
+    ctx.type = 'image/jpeg';
     ctx.body = stream.getContent();
   }
 
   else if (ctx.path == '/downloadImage') {
     let file = __dirname + '/test.jpg';
     let result = await officialAccount.media.uploadImage(file);
+    console.log('/downloadImage', result);
     if (!result) {
-      ctx.body = '上传微信服务器失败';
+      ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">上传微信服务器失败';
       return false;
     }
 
@@ -206,7 +213,7 @@ app.use(async (ctx, next) => {
     let result;
     result = await officialAccount.material.uploadThumb(file);
     if (!result) {
-      ctx.body = '上传缩略图失败';
+      ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">上传缩略图失败';
       return false;
     }
     let thumb_media_id = result.media_id;
@@ -214,7 +221,7 @@ app.use(async (ctx, next) => {
     file = __dirname + '/test.jpg';
     result = await officialAccount.material.uploadArticleImage(file);
     if (!result) {
-      ctx.body = '上传文章图片失败';
+      ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">上传文章图片失败';
       return false;
     }
     let media_url = result.url;
@@ -241,27 +248,29 @@ app.use(async (ctx, next) => {
 
     result = await officialAccount.material.uploadArticle(articles);
     if (!result) {
-      ctx.body = '推文发送失败';
+      ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">推文发送失败';
       return false;
     }
 
-    ctx.body = '推文发送成功，midia_id: ' + result.media_id;
+    ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">推文发送成功，midia_id: ' + result.media_id;
   }
 
   else if (ctx.path == '/pay') {
-    let order = {
-      trade_type   : 'JSAPI', // JSAPI，NATIVE，APP...
-      body         : '测试支付',
-      detail       : '测试支付明细',
-      out_trade_no : 'NODE_EASYWECHAT_1234567890',  // 商家的订单号
-      total_fee    : 1, // 单位：分
-      spbill_create_ip    : '111.222.111.222',
-      notify_url   : 'http://example.com/pay/notify', // 需要完整的地址。支付结果通知网址，如果不设置则会使用配置里的默认地址
-      openid       : 'oj4-ZwX5jyygQmPU1pF-jWUznNNE' // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识
-    };
+    const PaymentConfig = require('./config/Payment');
+    let payment = new EasyWechat.Factory.Payment(PaymentConfig);
 
     // 统一下单
-    let res = await officialAccount.payment.prepare(order);
+    let order = {
+      trade_type: 'JSAPI', // JSAPI，NATIVE，APP...
+      body: '测试支付',
+      detail: '测试支付明细',
+      out_trade_no: 'NODE_EASYWECHAT_1234567890',  // 商家的订单号
+      total_fee: 1, // 单位：分
+      spbill_create_ip: '111.222.111.222',
+      notify_url: 'http://example.com/pay/notify', // 需要完整的地址。支付结果通知网址，如果不设置则会使用配置里的默认地址
+      openid: 'oj4-ZwX5jyygQmPU1pF-jWUznNNE' // trade_type=JSAPI，此参数必传，用户在商户appid下的唯一标识
+    };
+    let res = await payment.order.unify(order);
     if (res.return_code != 'SUCCESS' || res.result_code != 'SUCCESS') {
       console.log('pay', res);
       ctx.body = '支付失败';
@@ -270,9 +279,9 @@ app.use(async (ctx, next) => {
     let prepare_id = res.prepay_id;
 
     // WeixinJSBridge
-    let config_jsbridge = officialAccount.payment.configForPayment(prepare_id);
+    let config_jsbridge = payment.jssdk.bridgeConfig(prepare_id);
     // JSSDK，如果使用这种方式，jssdk.config的api列表里需要增加一个chooseWXPay
-    let config_jssdk = officialAccount.payment.configForJSSDKPayment(prepare_id);
+    let config_jssdk = payment.jssdk.sdkConfig(prepare_id);
 
     ctx.body = JSON.stringify({
       jsbridge: config_jsbridge,
@@ -281,16 +290,24 @@ app.use(async (ctx, next) => {
   }
 
   else if (ctx.path == '/pay/notify') {
-    let handler = function (notice, is_success) {
+    const PaymentConfig = require('./config/Payment');
+    let payment = new EasyWechat.Factory.Payment(PaymentConfig);
+
+    await payment.handlePaidNotify(function (message, fail) {
       // 签名验证已经在回调之前处理了，这里直接写业务逻辑即可
-      // notice 是微信通知的所有参数，is_success表示result_code是否为SUCCESS
-      console.log('notify', notice, is_success);
+      // message 是微信通知的所有信息
+      // fail 为一个函数，触发该函数可向微信服务器返回对应的错误信息，微信会稍后重试再通知。
+      console.log('handlePaidNotify', message);
 
-      // 返回 false 表示处理失败，微信会再次发送通知
+      // 异常处理
+      let error = false;
+      if (error) {
+        fail('Order not exists.');
+      }
+
+      // 只有返回 true，微信才会停止发送通知
       return true;
-    };
-
-    await officialAccount.payment.handleNotify(handler);
+    });
   }
 
   else {
