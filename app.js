@@ -24,7 +24,7 @@ app.use(async (ctx, next) => {
 
   else if (ctx.path == '/wxlogin/callback') {
     let code = ctx.query.code;
-    let user = await officialAccount.oauth.user(code);
+    let user = await officialAccount.oauth.userFromCode(code);
     console.log('/wxlogin/callback', user);
     ctx.body = `<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <img src="${user.avatar}" style="display: block; border: 0; border-radius: 50%; width: 100px; height: 100px;"><br>Hello ${user.name}`;
