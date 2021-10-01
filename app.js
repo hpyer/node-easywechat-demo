@@ -11,7 +11,7 @@ app.keys = serverConfig.keysKoa;
 app.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
 
-  const EasyWechat = require('node-easywechat2');
+  const EasyWechat = require('node-easywechat');
   const OfficialAccountConfig = require('./config/OfficialAccount');
 
   let officialAccount = new EasyWechat.Factory.OfficialAccount(OfficialAccountConfig);
