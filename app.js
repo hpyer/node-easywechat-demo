@@ -287,11 +287,7 @@ koa.use(async (ctx, next) => {
 
     // 上传永久图片
     file = path.join(__dirname, '/test.jpg');
-    form = new FormData;
-    form.append('media', fs.createReadStream(file))
-    result = await (await client.post('cgi-bin/media/uploadimg', {
-      data: form,
-    })).toObject();
+    result = await (await client.withFile(file, 'media').post('cgi-bin/media/uploadimg')).toObject();
     if (result.errcode) {
       ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">上传文章图片失败';
       return false;
