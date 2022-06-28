@@ -19,7 +19,7 @@ koa.use(async (ctx, next) => {
 
   const app = new OfficialAccount(OfficialAccountConfig);
 
-  let request = ServerRequest.createFromIncomingMessage(ctx.req);
+  let request = await ServerRequest.createFromIncomingMessage(ctx.req);
   app.setRequest(request);
 
   const client = app.getClient();

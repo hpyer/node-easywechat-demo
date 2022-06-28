@@ -7,7 +7,7 @@ module.exports = {
   // 微信公众号的 token
   token: '1qaz2wsx3edc4rfv',
   // EncodingAESKey
-  aes_key: '1qaz2wsx3edc4rfv1qaz2wsx3edc4rfv',
+  aes_key: '',
 
   // 网页授权认证
   oauth: {
