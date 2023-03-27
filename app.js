@@ -63,8 +63,7 @@ koa.use(async (ctx, next) => {
       },
       remark: '感谢～'
     };
-    let result
-    result = await (await client.post('cgi-bin/message/template/send', {
+    let result = (await client.post('cgi-bin/message/template/send', {
       data: {
         touser: openid,
         template_id: templateid,
@@ -147,8 +146,7 @@ koa.use(async (ctx, next) => {
   else if (ctx.path == '/qrcode') {
     // temporary
     let seconds = 300;
-    let result, qrcode;
-    result = await (await client.post('cgi-bin/qrcode/create', {
+    let result = (await client.post('cgi-bin/qrcode/create', {
       data: {
         action_name: 'QR_SCENE',
         action_info: {
@@ -162,7 +160,7 @@ koa.use(async (ctx, next) => {
     console.log('temporary', result);
 
     // // forever
-    // result = await client.post('cgi-bin/qrcode/create', {
+    // result = (await client.post('cgi-bin/qrcode/create', {
     //   data: {
     //     action_name: 'QR_LIMIT_SCENE',
     //     action_info: {
@@ -171,10 +169,10 @@ koa.use(async (ctx, next) => {
     //       },
     //     },
     //   }
-    // });
+    // })).toObject();
     // console.log('forever', result);
 
-    qrcode = `https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=${result.ticket}`;
+    let qrcode = `https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=${result.ticket}`;
     console.log('qrcode', qrcode);
 
     ctx.body = `<meta name="viewport" content="width=device-width, initial-scale=1.0"><a href="${qrcode}" target="_blank">查看二维码</a>`;
@@ -203,7 +201,7 @@ koa.use(async (ctx, next) => {
         ]
       }
     ];
-    let result = await (await client.post('cgi-bin/menu/create', {
+    let result = (await client.post('cgi-bin/menu/create', {
       data: {
         button,
       },
@@ -249,7 +247,7 @@ koa.use(async (ctx, next) => {
     let file = path.join(__dirname, '/test.jpg');
     let form = new FormData;
     form.append('media', fs.createReadStream(file))
-    let result = await (await client.post('cgi-bin/media/upload', {
+    let result = (await client.post('cgi-bin/media/upload', {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
@@ -273,7 +271,7 @@ koa.use(async (ctx, next) => {
     let form, result;
     form = new FormData;
     form.append('media', fs.createReadStream(file));
-    result = await (await client.post('cgi-bin/material/add_material', {
+    result = (await client.post('cgi-bin/material/add_material', {
       data: form,
       params: {
         type: 'thumb',
@@ -287,7 +285,7 @@ koa.use(async (ctx, next) => {
 
     // 上传永久图片
     file = path.join(__dirname, '/test.jpg');
-    result = await (await client.withFile(file, 'media').post('cgi-bin/media/uploadimg')).toObject();
+    result = (await client.withFile(file, 'media').post('cgi-bin/media/uploadimg')).toObject();
     if (result.errcode) {
       ctx.body = '<meta name="viewport" content="width=device-width, initial-scale=1.0">上传文章图片失败';
       return false;
@@ -315,7 +313,7 @@ koa.use(async (ctx, next) => {
     });
 
     // 添加到草稿箱
-    result = await (await client.post('cgi-bin/draft/add', {
+    result = (await client.post('cgi-bin/draft/add', {
       data: {
         articles,
       },
