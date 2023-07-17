@@ -1,5 +1,6 @@
+const { defineOfficialAccountConfig } = require('node-easywechat');
 
-module.exports = {
+module.exports = defineOfficialAccountConfig({
   // 微信公众号的 app key
   app_id: 'wxa21ea61055789ebc',
   // 微信公众号的 app secret
@@ -16,4 +17,4 @@ module.exports = {
     // 网页授权回调地址，完整的URL
     callback: 'http://node-easywechat.hpyer.cn/wxlogin/callback'
   },
-};
+});
