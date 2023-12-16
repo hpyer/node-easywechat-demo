@@ -6,6 +6,7 @@ const fs = require('fs');
 const Koa = require('koa');
 
 const serverConfig = require('./config/server');
+const openplatform = require('./openplatform');
 
 const koa = new Koa();
 
@@ -13,6 +14,10 @@ koa.keys = serverConfig.keysKoa;
 
 koa.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
+
+  if (ctx.path.startsWith('/wxopen')) {
+    return openplatform(ctx, next);
+  }
 
   const { OfficialAccount, ServerRequest, Message, FormData } = require('node-easywechat');
   const OfficialAccountConfig = require('./config/OfficialAccount');
