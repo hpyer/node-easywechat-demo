@@ -3,6 +3,7 @@
 const Koa = require('koa');
 
 const serverConfig = require('./config/server');
+const openplatform = require('./openplatform');
 
 const app = new Koa();
 
@@ -10,6 +11,10 @@ app.keys = serverConfig.keysKoa;
 
 app.use(async (ctx, next) => {
   if (ctx.path === '/favicon.ico') return;
+
+  if (ctx.path.startsWith('/wxopen')) {
+    return openplatform(ctx, next);
+  }
 
   const EasyWechat = require('node-easywechat');
   const OfficialAccountConfig = require('./config/OfficialAccount');
@@ -55,6 +60,7 @@ app.use(async (ctx, next) => {
   }
 
   else if (ctx.path == '/server') {
+    console.log(ctx.path, ctx.method);
     let handler = async function (message) {
 
       switch (message.MsgType) {

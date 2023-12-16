@@ -1,0 +1,14 @@
+
+module.exports = {
+  // 开放平台的 app key
+  app_id: '',
+  // 开放平台的 app secret
+  secret: '',
+  // 开放平台的 token
+  token: '',
+  // EncodingAESKey
+  aes_key: '',
+
+  // 代理公众号的authorizer_refresh_token，完成授权后填到这里
+  authorizerRefreshToken: '',
+};
