@@ -6,6 +6,6 @@
     "koa": "^2.13.4"
   },
   "dependencies": {
-    "node-easywechat": "^3.5.0"
+    "node-easywechat": "^3.5.6"
   }
 }
