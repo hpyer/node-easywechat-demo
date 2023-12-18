@@ -333,13 +333,14 @@ koa.use(async (ctx, next) => {
 
   else {
     let jssdkConfig = await app.getUtils().buildJsSdkConfig(serverConfig.serverUrl + ctx.req.url, [
-      'onMenuShareTimeline',
-      'onMenuShareAppMessage',
+      'updateAppMessageShareData',
+      'updateTimelineShareData',
       'chooseImage',
       'uploadImage',
       'downloadImage',
       'chooseWXPay'
-    ], true);
+    ]);
+    jssdkConfig = JSON.stringify(jssdkConfig);
 
     let html = `
     <!DOCTYPE html>
@@ -349,8 +350,9 @@ koa.use(async (ctx, next) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta http-equiv="X-UA-Compatible" content="ie=edge">
       <title>微信公众号测试</title>
-      <script src="//res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+      <script src="//res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
       <script src="//apps.bdimg.com/libs/zepto/1.1.4/zepto.min.js"></script>
+      <script src="//cdn.jsdelivr.net/npm/vconsole@latest/dist/vconsole.min.js"></script>
     </head>
     <body>
       <h3>请在微信中打开体验各功能</h3>
@@ -415,15 +417,15 @@ koa.use(async (ctx, next) => {
       }
 
       wx.ready(function () {
-        wx.onMenuShareTimeline({
+        wx.updateTimelineShareData({
           title: '测试分享到朋友圈',
           link: wxConfig.url,
           imgUrl: 'http://www.oasishealth.cn/upload/news/image/20170117/20170117162341_79205.jpg',
-          success: () => {},
-          cancel: () => {}
+          success: function () {},
+          cancel: function () {}
         });
 
-        wx.onMenuShareAppMessage({
+        wx.updateAppMessageShareData({
           title: '测试分享给好友',
           desc: '测试分享给好友详细描述',
           link: wxConfig.url,
@@ -464,6 +466,8 @@ koa.use(async (ctx, next) => {
 
               // --------- 支付(前端处理) end ---------
       });
+
+      var vConsole = new VConsole();
       </script>
     </body>
     </html>
