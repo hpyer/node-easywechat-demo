@@ -82,6 +82,7 @@ koa.use(async (ctx, next) => {
   else if (ctx.path == '/server') {
     let server = app.getServer();
     server.with(async function (message) {
+      console.log(ctx.path, message);
       switch (message.MsgType) {
         case 'text':
           // 关键字自动回复
