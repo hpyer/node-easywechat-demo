@@ -15,6 +15,6 @@ module.exports = defineOfficialAccountConfig({
     // 网页授权类型
     scope: 'snsapi_userinfo',
     // 网页授权回调地址，完整的URL
-    callback: 'http://example.com/wxlogin/callback'
+    redirect_url: 'http://example.com/wxlogin/callback'
   },
 });
